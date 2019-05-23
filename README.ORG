@@ -1,8 +1,11 @@
 #+TITLE: 项目
 
-* 目录                                                                  :TOC@2:
+* 目录                                                                  :TOC:
 - [[#开发环境部署][开发环境部署]]
   - [[#python][Python]]
+    - [[#django][Django]]
+    - [[#pyecharts][pyecharts]]
+    - [[#pymysql][pymysql]]
   - [[#mysql][MySQL]]
 - [[#项目需求分析][项目需求分析]]
   - [[#从功能需求来看][从功能需求来看]]
@@ -13,8 +16,15 @@
 ** Python
 *** Django
     web 框架
+    #+begin_src shell
+    pip install django
+    pip install djangorestframework
+    #+end_src
 *** pyecharts
     图表
+    #+begin_src shell
+    pip install pyecharts
+    #+end_src
 *** pymysql
     数据库
 ** MySQL
