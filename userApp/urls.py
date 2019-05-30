@@ -1,9 +1,8 @@
-from django.conf.urls import url
-
+from django.urls import include, path
 from . import views
 
 urlpatterns = [
-    url(r'^bar/$', views.ChartView.as_view()),
-    url(r'^index/$', views.IndexView.as_view()),
-    url(r'^map/$', views.MapView.as_view()),
+    path('bar/', views.ChartView.as_view()),
+    path('index/', views.IndexView.as_view()),
+    path('map/', views.MapView.as_view()),
 ]
