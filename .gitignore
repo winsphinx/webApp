@@ -1,4 +1,5 @@
 # Python:
+*.sqlite3
 *.py[cod]
 **/.ropeproject
 **/__pycache__
