@@ -85,11 +85,12 @@ class ChartView(APIView):
 
 class IndexView(APIView):
     def get(self, request, *args, **kwargs):
-        return HttpResponse(content=open("./templates/index.html").read())
+        # return HttpResponse(content=open("./templates/index.html").read())
+        return render(request, 'index.html')
 
 
 class MapView(APIView):
     def get(self, request, *args, **kwargs):
         return HttpResponse(
-            content=open(map_base().render("./templates/map.html")).read())
-        # content=open(map2_base().render("./templates/map.html")).read())
+            content=open(map_base().render("./templates/map.html")))
+        # content=open(map2_base().render("./templates/map.html")))
