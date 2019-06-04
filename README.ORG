@@ -15,7 +15,7 @@
 * 开发环境部署
 ** Python
 *** Django
-    web 框架
+    Web 框架
     #+begin_src shell
     pip install django
     pip install djangorestframework
@@ -27,8 +27,14 @@
     #+end_src
 *** pymysql
     数据库
+    #+begin_src shell
+    pip install pymysql
+    pip install mysqlclient
+    #+end_src
 ** MySQL
-
+    #+begin_src shell
+    CREATE DATABASE roam DEFAULT CHARSET=utf8 DEFAULT COLLATE utf8_unicode_ci;
+    #+end_src
 * 项目需求分析
 ** 从功能需求来看
 ** 从设计方面来看
