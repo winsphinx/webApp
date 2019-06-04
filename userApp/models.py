@@ -29,6 +29,5 @@ class RoamIn(models.Model):
 class RoamOut(models.Model):
     msisdn = models.CharField(max_length=20)
     month = models.CharField(max_length=20)
-    names = locals()
     for i in range(32):
-        names['day' + str(i)] = models.CharField(max_length=20)
+        locals()['day' + str(i)] = models.CharField(max_length=20)

@@ -1,12 +1,16 @@
-import json, os, shutil
-import pandas as pd
+import json
+import os
+import shutil
 from random import randrange
+
+import pandas as pd
 from django.conf import settings
 from django.http import HttpResponse
 from django.shortcuts import render
 from pyecharts import options as opts
 from pyecharts.charts import Bar, Map
 from rest_framework.views import APIView
+from sqlalchemy import create_engine
 
 
 # Create your views here.
@@ -58,7 +62,15 @@ def read_files(file_dir):
     file_lists = get_filenames(file_dir)
     for f in file_lists:
         df = pd.DataFrame(pd.read_csv(f))
+        write_db(df)
         print(df)
+
+
+def write_db(data):
+    engine = create_engine(
+        "mysql+pymysql://root@localhost:3306/roam?charset=utf8")
+    con = engine.connect()
+    data.to_sql(name='orig', con=con, if_exists='replace', index=False)
 
 
 def bar_base() -> Bar:
@@ -72,33 +84,41 @@ def bar_base() -> Bar:
 
 
 def map_base() -> Map:
-    return (Map().add(series_name='用户数',
-                      data_pair=[
-                          ('北京', 120),
-                          ('上海', 200),
-                          ('浙江', 150),
-                          ('安徽', 100),
-                      ],
-                      maptype='china',
-                      zoom=1.25).set_global_opts(
-                          title_opts=opts.TitleOpts(title='Example'),
-                          visualmap_opts=opts.VisualMapOpts(
-                              max_=200, is_piecewise=True)))
+    return (Map().add(
+        series_name='用户数',
+        data_pair=[
+            ('北京', 120),
+            ('上海', 200),
+            ('浙江', 150),
+            ('安徽', 100),
+        ],
+        maptype='china',
+        zoom=1,
+        is_roam=False,
+    ).set_global_opts(title_opts=opts.TitleOpts(title='Example'),
+                      visualmap_opts=opts.VisualMapOpts(
+                          max_=200,
+                          is_piecewise=True,
+                      )))
 
 
 def map2_base() -> Map:
-    return (Map().add(series_name='用户数',
-                      data_pair=[
-                          ('杭州市', 120),
-                          ('宁波市', 200),
-                          ('绍兴市', 150),
-                          ('台州市', 100),
-                      ],
-                      maptype='浙江',
-                      zoom=1.25).set_global_opts(
-                          title_opts=opts.TitleOpts(title='Example'),
-                          visualmap_opts=opts.VisualMapOpts(
-                              max_=200, is_piecewise=True)))
+    return (Map().add(
+        series_name='用户数',
+        data_pair=[
+            ('杭州市', 120),
+            ('宁波市', 200),
+            ('绍兴市', 150),
+            ('台州市', 100),
+        ],
+        maptype='浙江',
+        zoom=1,
+        is_roam=False,
+    ).set_global_opts(title_opts=opts.TitleOpts(title='Example'),
+                      visualmap_opts=opts.VisualMapOpts(
+                          max_=200,
+                          is_piecewise=True,
+                      )))
 
 
 class ChartView(APIView):
@@ -116,5 +136,5 @@ class IndexView(APIView):
 class MapView(APIView):
     def get(self, request, *args, **kwargs):
         return HttpResponse(
-            content=open(map_base().render("./templates/map.html")).read())
-        # content=open(map2_base().render("./templates/map2.html")).read())
+            # content=open(map_base().render("./templates/map.html")).read())
+            content=open(map2_base().render("./templates/map2.html")).read())
