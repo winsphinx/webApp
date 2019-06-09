@@ -1,5 +1,6 @@
 import json
 import os
+import re
 import shutil
 from random import randrange
 
@@ -61,8 +62,11 @@ def move_files(filename, from_dir, to_dir):
 def read_files(file_dir):
     file_lists = get_filenames(file_dir)
     for f in file_lists:
+        day = get_file_date(f)
         df = pd.DataFrame(pd.read_csv(f))
+        df['DAY'] = day
         write_db(df)
+        print(day)
         print(df)
 
 
@@ -70,7 +74,12 @@ def write_db(data):
     engine = create_engine(
         "mysql+pymysql://root@localhost:3306/roam?charset=utf8")
     con = engine.connect()
+    # data.to_sql(name='orig', con=con, if_exists='append', index=False)
     data.to_sql(name='orig', con=con, if_exists='replace', index=False)
+
+
+def get_file_date(filename):
+    return re.compile(r'\d{8}').search(filename).group()
 
 
 def bar_base() -> Bar:

@@ -4,10 +4,11 @@ from django.db import models
 
 
 class Orig(models.Model):
-    msisdn = models.CharField(max_length=20)
     roam = models.CharField(max_length=20)
     host = models.CharField(max_length=20)
-    day = models.DateField()
+    msisdn = models.CharField(max_length=20)
+    imsi = models.CharField(max_length=20)
+    day = models.CharField(max_length=20)
 
     # class Meta:
     #     abstract = True
