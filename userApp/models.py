@@ -6,9 +6,9 @@ from django.db import models
 class Orig(models.Model):
     roam = models.CharField(max_length=20)
     host = models.CharField(max_length=20)
-    msisdn = models.CharField(max_length=20)
-    imsi = models.CharField(max_length=20)
-    day = models.CharField(max_length=20)
+    msisdn = models.BigIntegerField()
+    imsi = models.BigIntegerField()
+    day = models.DateField()
 
     # class Meta:
     #     abstract = True
@@ -24,7 +24,7 @@ class Orig(models.Model):
 class RoamIn(models.Model):
     msisdn = models.CharField(max_length=20)
     host = models.CharField(max_length=20)
-    date = models.DateField(max_length=20)
+    date = models.DateField()
 
 
 class RoamOut(models.Model):
