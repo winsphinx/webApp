@@ -72,8 +72,9 @@ def read_files(file_dir):
         df['day'] = day
         write_db(df)
         print(df)
-        query_db_by_date(
-            datetime.datetime.strptime('20190610', '%Y%m%d').date())
+        query_db_by_date()
+        # query_db_by_date(
+        #     datetime.datetime.strptime('20190611', '%Y%m%d').date())
 
 
 def write_db(data):
@@ -92,13 +93,17 @@ def get_file_date(filename):
 
 def query_db_by_date(date=datetime.date.today()):
     print(date)
-    # o = models.Orig.objects.filter(day=date).count()
+    # o = models.Orig.objects.filter(day='2019-06-09').count()
+    # print(o)
     # o = models.Orig.objects.filter(host='浙江绍兴').count()
-    o = models.Orig.objects.filter(host='浙江绍兴').values('roam').annotate(
+    q = models.Orig.objects.filter(host='浙江绍兴').values('roam').annotate(
         Count('roam'))
     # o = models.Orig.objects.count()
     # o = models.Orig.objects.all()
-    return [tuple(x.values()) for x in list(o)]
+    return [
+        tuple((re.sub(u'浙江([\u4e00-\u9fa5]{2})', lambda x: x.group(1) + '市',
+                      x['roam']), x['roam__count'])) for x in list(q)
+    ]
 
 
 def bar_base() -> Bar:
@@ -111,31 +116,15 @@ def bar_base() -> Bar:
     return c
 
 
-def map_base() -> Map:
+def map_base(name, data, maptype, maxdata) -> Map:
     return (Map().add(
-        series_name='省际漫游用户数',
-        data_pair=query_db_by_date(),
-        maptype='china',
+        series_name=name,
+        data_pair=data,
+        maptype=maptype,
         zoom=1,
         is_roam=False,
     ).set_global_opts(title_opts=opts.TitleOpts(title=''),
-                      visualmap_opts=opts.VisualMapOpts(max_=5000)))
-
-
-def map2_base() -> Map:
-    return (Map().add(
-        series_name='省内漫游用户数',
-        data_pair=[
-            ('杭州市', 120),
-            ('宁波市', 200),
-            ('绍兴市', 150),
-            ('台州市', 100),
-        ],
-        maptype='浙江',
-        zoom=1,
-        is_roam=False,
-    ).set_global_opts(title_opts=opts.TitleOpts(title=''),
-                      visualmap_opts=opts.VisualMapOpts(max_=200)))
+                      visualmap_opts=opts.VisualMapOpts(max_=maxdata)))
 
 
 class ChartView(APIView):
@@ -146,6 +135,12 @@ class ChartView(APIView):
 class IndexView(APIView):
     def get(self, request, *args, **kwargs):
         read_files(settings.MEDIA_ROOT)
+        print(query_db_by_date())
+        map_base('本地->省际漫出用户数', query_db_by_date(), 'china',
+                 5000).render('./templates/map_china_out.html')
+        map_base('本地->省内漫出用户数', query_db_by_date(), '浙江',
+                 20000).render('./templates/map_zj_out.html')
+
         # return HttpResponse(content=open("./templates/index.html").read())
         return render(request, 'index.html')
 
