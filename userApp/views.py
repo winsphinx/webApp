@@ -71,8 +71,8 @@ def read_files(file_dir):
         df.columns = ['roam', 'host', 'msisdn', 'imsi']
         df['day'] = day
         write_db(df)
-        print(df)
-        query_db_by_date()
+        # print(df)
+        # query_db_by_date()
         # query_db_by_date(
         #     datetime.datetime.strptime('20190611', '%Y%m%d').date())
 
@@ -91,7 +91,7 @@ def get_file_date(filename):
     return re.compile(r'\d{8}').search(filename).group()
 
 
-def query_db_by_date(date=datetime.date.today()):
+def query_db_for_out_by_date(date=datetime.date.today()):
     print(date)
     # o = models.Orig.objects.filter(day='2019-06-09').count()
     # print(o)
@@ -103,6 +103,15 @@ def query_db_by_date(date=datetime.date.today()):
     return [
         tuple((re.sub(u'浙江([\u4e00-\u9fa5]{2})', lambda x: x.group(1) + '市',
                       x['roam']), x['roam__count'])) for x in list(q)
+    ]
+
+
+def query_db_for_in_by_date(date=datetime.date.today()):
+    q = models.Orig.objects.filter(roam='浙江绍兴').values('host').annotate(
+        Count('host'))
+    return [
+        tuple((re.sub(u'浙江([\u4e00-\u9fa5]{2})', lambda x: x.group(1) + '市',
+                      x['host']), x['host__count'])) for x in list(q)
     ]
 
 
@@ -135,12 +144,15 @@ class ChartView(APIView):
 class IndexView(APIView):
     def get(self, request, *args, **kwargs):
         read_files(settings.MEDIA_ROOT)
-        print(query_db_by_date())
-        map_base('本地->省际漫出用户数', query_db_by_date(), 'china',
-                 5000).render('./templates/map_china_out.html')
-        map_base('本地->省内漫出用户数', query_db_by_date(), '浙江',
-                 20000).render('./templates/map_zj_out.html')
+        map_base('本地->省外漫出用户数', query_db_for_out_by_date(), 'china',
+                 5000).render('./templates/map_sx_to_cn.html')
+        map_base('本地->省内漫出用户数', query_db_for_out_by_date(), '浙江',
+                 20000).render('./templates/map_sx_to_zj.html')
 
+        map_base('省外->本地漫入用户数', query_db_for_in_by_date(), 'china',
+                 25000).render('./templates/map_cn_to_sx.html')
+        map_base('省内->本地漫入用户数', query_db_for_in_by_date(), '浙江',
+                 50000).render('./templates/map_zj_to_sx.html')
         # return HttpResponse(content=open("./templates/index.html").read())
         return render(request, 'index.html')
 
