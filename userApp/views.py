@@ -81,10 +81,12 @@ def write_db(data):
     engine = create_engine(
         "mysql+pymysql://root@localhost:3306/roam?charset=utf8")
     con = engine.connect()
-    data.to_sql(name='userapp_orig',
-                con=con,
-                if_exists='replace',
-                index_label='id')
+    data.to_sql(
+        name='userapp_orig',
+        con=con,
+        # if_exists='append',
+        if_exists='replace',
+        index_label='id')
 
 
 def get_file_date(filename):
@@ -115,13 +117,19 @@ def query_db_for_in_by_date(date=datetime.date.today()):
     ]
 
 
-def bar_base() -> Bar:
-    c = (Bar().add_xaxis(["A", "B", "C", "D", "E", "F"]).add_yaxis(
-        "商家A", [randrange(0, 100) for _ in range(6)]).add_yaxis(
-            "商家B",
-            [randrange(0, 100)
-             for _ in range(6)]).set_global_opts(title_opts=opts.TitleOpts(
-                 title="Bar-基本示例", subtitle="我是副标题")).dump_options())
+def query_db_for_in_top_users():
+    q = models.Orig.objects.filter(roam='浙江绍兴').values('msisdn').annotate(
+        Count('msisdn'))[:50]
+    return ([x['msisdn'] - 86E11 for x in q], [x['msisdn__count'] for x in q])
+
+
+def bar_base(name, x_data, y_data) -> Bar:
+    c = (Bar().add_xaxis(x_data).add_yaxis(name, sorted(
+        y_data, reverse=False)).reversal_axis().set_series_opts(
+            label_opts=opts.LabelOpts(position="right")).set_global_opts(
+                title_opts=opts.TitleOpts(title=''),
+                datazoom_opts=opts.DataZoomOpts(orient='vertical'),
+                toolbox_opts=opts.ToolboxOpts()).dump_options())
     return c
 
 
@@ -138,7 +146,8 @@ def map_base(name, data, maptype, maxdata) -> Map:
 
 class ChartView(APIView):
     def get(self, request, *args, **kwargs):
-        return JsonResponse(json.loads(bar_base()))
+        x, y = query_db_for_in_top_users()
+        return JsonResponse(json.loads(bar_base('漫入用 TOP-N', x, y)))
 
 
 class IndexView(APIView):
