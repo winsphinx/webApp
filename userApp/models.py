@@ -8,23 +8,13 @@ class Orig(models.Model):
     host = models.CharField(max_length=20)
     msisdn = models.BigIntegerField()
     imsi = models.BigIntegerField()
-    day = models.DateField()
-
-    # class Meta:
-    #     abstract = True
-
-
-# class Student(Orig):
-#     class Meta(Orig.Meta):
-#         db_table = 'aaa'
-#         db_table = 'bbb'
-#         db_table = 'ccc'
+    day = models.CharField(max_length=20)
 
 
 class RoamIn(models.Model):
     msisdn = models.CharField(max_length=20)
     host = models.CharField(max_length=20)
-    date = models.DateField()
+    day = models.CharField(max_length=20)
 
 
 class RoamOut(models.Model):
