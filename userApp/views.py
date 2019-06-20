@@ -56,11 +56,11 @@ def get_filenames(file_dir):
     return filelist
 
 
-def move_files(filename, from_dir, to_dir):
-    filebasename = os.path.basename(filename)
-    src_file = os.path.join(from_dir, filebasename)
-    dst_file = os.path.join(to_dir, filebasename)
-    shutil.move(src_file, dst_file)
+def pack_files(filename):
+    dest = os.path.join(settings.MEDIA_ROOT, 'achieved')
+    if not os.path.exists(dest):
+        os.makedirs(dest)
+    shutil.move(filename, dest)
 
 
 def read_files(file_dir):
@@ -70,6 +70,7 @@ def read_files(file_dir):
         df = pd.DataFrame(pd.read_csv(f))
         df.columns = ['roam', 'host', 'msisdn', 'imsi']
         df['day'] = day
+        pack_files(f)
         write_db(df)
         print(df)
         # query_db_by_date()
@@ -152,7 +153,7 @@ class ChartView(APIView):
 
 class IndexView(APIView):
     def get(self, request, *args, **kwargs):
-        # read_files(settings.MEDIA_ROOT)
+        read_files(settings.MEDIA_ROOT)
         map_base('本地->省外漫出用户数', query_db_for_out_by_date('20190609'), 'china',
                  5000).render('./templates/map_sx_to_cn.html')
         map_base('本地->省内漫出用户数', query_db_for_out_by_date('20190610'), '浙江',
