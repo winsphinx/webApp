@@ -1,21 +1,24 @@
-import datetime
 import json
 import os
 import re
 import shutil
-from random import randrange
 
 import pandas as pd
 from django.conf import settings
 from django.db.models import Count
 from django.http import HttpResponse
 from django.shortcuts import render
+from django.utils import timezone
 from pyecharts import options as opts
 from pyecharts.charts import Bar, Map
 from rest_framework.views import APIView
 from sqlalchemy import create_engine
 
 from userApp import models
+
+# from random import randrange
+
+
 
 
 # Create your views here.
@@ -72,10 +75,6 @@ def read_files(file_dir):
         df['day'] = day
         pack_files(f)
         write_db(df)
-        print(df)
-        # query_db_by_date()
-        # query_db_by_date(
-        #     datetime.datetime.strptime('20190611', '%Y%m%d').date())
 
 
 def write_db(data):
@@ -94,22 +93,16 @@ def get_file_date(filename):
     return re.compile(r'\d{8}').search(filename).group()
 
 
-def query_db_for_out_by_date(date):
-    print(date)
-    # o = models.Orig.objects.filter(day='2019-06-09').count()
-    # print(o)
-    # o = models.Orig.objects.filter(host='浙江绍兴').count()
+def query_db_for_out_by_date(date=timezone.now().strftime('%Y%m%d')):
     q = models.Orig.objects.filter(day=date).filter(
         host='浙江绍兴').values('roam').annotate(Count('roam'))
-    # o = models.Orig.objects.count()
-    # o = models.Orig.objects.all()
     return [
         tuple((re.sub(u'浙江([\u4e00-\u9fa5]{2})', lambda x: x.group(1) + '市',
                       x['roam']), x['roam__count'])) for x in list(q)
     ]
 
 
-def query_db_for_in_by_date(date):
+def query_db_for_in_by_date(date=timezone.now().strftime('%Y%m%d')):
     q = models.Orig.objects.filter(day=date).filter(
         roam='浙江绍兴').values('host').annotate(Count('host'))
     return [
@@ -154,14 +147,14 @@ class ChartView(APIView):
 class IndexView(APIView):
     def get(self, request, *args, **kwargs):
         read_files(settings.MEDIA_ROOT)
-        map_base('本地->省外漫出用户数', query_db_for_out_by_date('20190609'), 'china',
+        map_base('本地->省外漫出用户数', query_db_for_out_by_date(), 'china',
                  5000).render('./templates/map_sx_to_cn.html')
-        map_base('本地->省内漫出用户数', query_db_for_out_by_date('20190610'), '浙江',
+        map_base('本地->省内漫出用户数', query_db_for_out_by_date(), '浙江',
                  20000).render('./templates/map_sx_to_zj.html')
 
-        map_base('省外->本地漫入用户数', query_db_for_in_by_date('20190610'), 'china',
+        map_base('省外->本地漫入用户数', query_db_for_in_by_date(), 'china',
                  25000).render('./templates/map_cn_to_sx.html')
-        map_base('省内->本地漫入用户数', query_db_for_in_by_date('20190610'), '浙江',
+        map_base('省内->本地漫入用户数', query_db_for_in_by_date(), '浙江',
                  50000).render('./templates/map_zj_to_sx.html')
         # return HttpResponse(content=open("./templates/index.html").read())
         return render(request, 'index.html')
