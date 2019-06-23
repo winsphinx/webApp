@@ -11,6 +11,8 @@ from django.shortcuts import render
 from django.utils import timezone
 from pyecharts import options as opts
 from pyecharts.charts import Bar, Map
+from pyecharts.components import Table
+from pyecharts.options import ComponentTitleOpts
 from rest_framework.views import APIView
 from sqlalchemy import create_engine
 
@@ -128,10 +130,19 @@ def map_base(name, data, maptype, maxdata) -> Map:
         series_name=name,
         data_pair=data,
         maptype=maptype,
-        zoom=1,
+        zoom=1.0,
         is_roam=False,
     ).set_global_opts(title_opts=opts.TitleOpts(title=''),
                       visualmap_opts=opts.VisualMapOpts(max_=maxdata)))
+
+
+def table_base(data, title) -> Table:
+    table = Table()
+    headers = ['省市', '用户数']
+    rows = sorted(data, key=lambda x: x[1], reverse=True)
+    table.add(headers,
+              rows).set_global_opts(title_opts=ComponentTitleOpts(title=title))
+    return table
 
 
 class ChartView(APIView):
@@ -153,7 +164,11 @@ class IndexView(APIView):
                      25000).render('./templates/map_cn_to_sx.html')
             map_base('省内->本地漫入用户数', query_db_for_in_by_date(), '浙江',
                      50000).render('./templates/map_zj_to_sx.html')
-            # return HttpResponse(content=open("./templates/index.html").read())
+
+            table_base(query_db_for_out_by_date(),
+                       '漫出用户数统计表').render('./templates/tbl_sx_to_cn.html')
+            table_base(query_db_for_in_by_date(),
+                       '漫入用户数统计表').render('./templates/tbl_cn_to_sx.html')
             return render(request, 'index.html')
         else:
             pass
