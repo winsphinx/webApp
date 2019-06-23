@@ -16,10 +16,6 @@ from sqlalchemy import create_engine
 
 from userApp import models
 
-# from random import randrange
-
-
-
 
 # Create your views here.
 def response_as_json(data):
@@ -114,7 +110,7 @@ def query_db_for_in_by_date(date=timezone.now().strftime('%Y%m%d')):
 def query_db_for_in_top_users():
     q = models.Orig.objects.filter(roam='浙江绍兴').values('msisdn').annotate(
         Count('msisdn'))[:50]
-    return ([x['msisdn'][2:] for x in q], [x['msisdn__count'] for x in q])
+    return ([str(x['msisdn'])[2:] for x in q], [x['msisdn__count'] for x in q])
 
 
 def bar_base(name, x_data, y_data) -> Bar:
@@ -147,21 +143,23 @@ class ChartView(APIView):
 class IndexView(APIView):
     def get(self, request, *args, **kwargs):
         read_files(settings.MEDIA_ROOT)
-        map_base('本地->省外漫出用户数', query_db_for_out_by_date(), 'china',
-                 5000).render('./templates/map_sx_to_cn.html')
-        map_base('本地->省内漫出用户数', query_db_for_out_by_date(), '浙江',
-                 20000).render('./templates/map_sx_to_zj.html')
+        if request.method != 'POST':
+            map_base('本地->省外漫出用户数', query_db_for_out_by_date(), 'china',
+                     5000).render('./templates/map_sx_to_cn.html')
+            map_base('本地->省内漫出用户数', query_db_for_out_by_date(), '浙江',
+                     20000).render('./templates/map_sx_to_zj.html')
 
-        map_base('省外->本地漫入用户数', query_db_for_in_by_date(), 'china',
-                 25000).render('./templates/map_cn_to_sx.html')
-        map_base('省内->本地漫入用户数', query_db_for_in_by_date(), '浙江',
-                 50000).render('./templates/map_zj_to_sx.html')
-        # return HttpResponse(content=open("./templates/index.html").read())
-        return render(request, 'index.html')
+            map_base('省外->本地漫入用户数', query_db_for_in_by_date(), 'china',
+                     25000).render('./templates/map_cn_to_sx.html')
+            map_base('省内->本地漫入用户数', query_db_for_in_by_date(), '浙江',
+                     50000).render('./templates/map_zj_to_sx.html')
+            # return HttpResponse(content=open("./templates/index.html").read())
+            return render(request, 'index.html')
+        else:
+            pass
 
 
 class MapView(APIView):
     def get(self, request, *args, **kwargs):
         return HttpResponse(
             content=open(map_base().render("./templates/map.html")).read())
-        # content=open(map2_base().render("./templates/map2.html")).read())
