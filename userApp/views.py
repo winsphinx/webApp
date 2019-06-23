@@ -16,7 +16,7 @@ from pyecharts.options import ComponentTitleOpts
 from rest_framework.views import APIView
 from sqlalchemy import create_engine
 
-from userApp import models
+from userApp import forms, models
 
 
 # Create your views here.
@@ -154,6 +154,11 @@ class ChartView(APIView):
 class IndexView(APIView):
     def get(self, request, *args, **kwargs):
         read_files(settings.MEDIA_ROOT)
+        form = forms.OrigForm()
+        context = {'form': form}
+        # model = models.Orig
+        # form_class = forms.OrigForm
+
         if request.method != 'POST':
             map_base('本地->省外漫出用户数', query_db_for_out_by_date(), 'china',
                      5000).render('./templates/map_sx_to_cn.html')
@@ -169,9 +174,9 @@ class IndexView(APIView):
                        '漫出用户数统计表').render('./templates/tbl_sx_to_cn.html')
             table_base(query_db_for_in_by_date(),
                        '漫入用户数统计表').render('./templates/tbl_cn_to_sx.html')
-            return render(request, 'index.html')
+            return render(request, 'index.html', context)
         else:
-            pass
+            print(request.POST)
 
 
 class MapView(APIView):
