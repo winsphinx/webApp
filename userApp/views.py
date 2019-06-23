@@ -12,8 +12,8 @@ from django.utils import timezone
 from pyecharts import options as opts
 from pyecharts.charts import Bar, Map
 from pyecharts.components import Table
+from pyecharts.globals import CurrentConfig
 from pyecharts.options import ComponentTitleOpts
-from rest_framework.views import APIView
 from sqlalchemy import create_engine
 
 from userApp import forms, models
@@ -116,13 +116,12 @@ def query_db_for_in_top_users():
 
 
 def bar_base(name, x_data, y_data) -> Bar:
-    c = (Bar().add_xaxis(x_data).add_yaxis(name, sorted(
-        y_data, reverse=False)).reversal_axis().set_series_opts(
+    return (Bar().add_xaxis(x_data).add_yaxis(
+        name, sorted(y_data, reverse=False)).reversal_axis().set_series_opts(
             label_opts=opts.LabelOpts(position="right")).set_global_opts(
                 title_opts=opts.TitleOpts(title=''),
                 datazoom_opts=opts.DataZoomOpts(orient='vertical'),
                 toolbox_opts=opts.ToolboxOpts()).dump_options())
-    return c
 
 
 def map_base(name, data, maptype, maxdata) -> Map:
@@ -145,41 +144,35 @@ def table_base(data, title) -> Table:
     return table
 
 
-class ChartView(APIView):
-    def get(self, request, *args, **kwargs):
-        x, y = query_db_for_in_top_users()
-        return JsonResponse(json.loads(bar_base('漫入用户 TOP-N', x, y)))
+def bar_view(request):
+    x, y = query_db_for_in_top_users()
+    return JsonResponse(json.loads(bar_base('漫入用户 TOP-N', x, y)))
 
 
-class IndexView(APIView):
-    def get(self, request, *args, **kwargs):
-        read_files(settings.MEDIA_ROOT)
-        form = forms.OrigForm()
-        context = {'form': form}
-        # model = models.Orig
-        # form_class = forms.OrigForm
+def index_view(request):
+    read_files(settings.MEDIA_ROOT)
+    form = forms.OrigForm()
+    context = {'form': form}
 
-        if request.method != 'POST':
-            map_base('本地->省外漫出用户数', query_db_for_out_by_date(), 'china',
-                     5000).render('./templates/map_sx_to_cn.html')
-            map_base('本地->省内漫出用户数', query_db_for_out_by_date(), '浙江',
-                     20000).render('./templates/map_sx_to_zj.html')
+    if request.method != 'POST':
+        map_base('本地->省外漫出用户数', query_db_for_out_by_date(), 'china',
+                 5000).render('./templates/map_sx_to_cn.html')
+        map_base('本地->省内漫出用户数', query_db_for_out_by_date(), '浙江',
+                 20000).render('./templates/map_sx_to_zj.html')
 
-            map_base('省外->本地漫入用户数', query_db_for_in_by_date(), 'china',
-                     25000).render('./templates/map_cn_to_sx.html')
-            map_base('省内->本地漫入用户数', query_db_for_in_by_date(), '浙江',
-                     50000).render('./templates/map_zj_to_sx.html')
+        map_base('省外->本地漫入用户数', query_db_for_in_by_date(), 'china',
+                 25000).render('./templates/map_cn_to_sx.html')
+        map_base('省内->本地漫入用户数', query_db_for_in_by_date(), '浙江',
+                 50000).render('./templates/map_zj_to_sx.html')
 
-            table_base(query_db_for_out_by_date(),
-                       '漫出用户数统计表').render('./templates/tbl_sx_to_cn.html')
-            table_base(query_db_for_in_by_date(),
-                       '漫入用户数统计表').render('./templates/tbl_cn_to_sx.html')
-            return render(request, 'index.html', context)
-        else:
-            print(request.POST)
+        table_base(query_db_for_out_by_date(),
+                   '漫出用户数统计表').render('./templates/tbl_sx_to_cn.html')
+        table_base(query_db_for_in_by_date(),
+                   '漫入用户数统计表').render('./templates/tbl_cn_to_sx.html')
 
+        return render(request, 'index.html', context)
+    else:
+        print('POST:')
+        print(request.POST)
 
-class MapView(APIView):
-    def get(self, request, *args, **kwargs):
-        return HttpResponse(
-            content=open(map_base().render("./templates/map.html")).read())
+        return render(request, 'index.html', context)
