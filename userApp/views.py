@@ -91,7 +91,7 @@ def get_file_date(filename):
     return re.compile(r'\d{8}').search(filename).group()
 
 
-def query_db_for_out_by_date(date=timezone.now().strftime('%Y%m%d')):
+def query_db_for_out_by_date(date):
     q = models.Orig.objects.filter(day=date).filter(
         host='浙江绍兴').values('roam').annotate(Count('roam'))
     return [
@@ -100,7 +100,7 @@ def query_db_for_out_by_date(date=timezone.now().strftime('%Y%m%d')):
     ]
 
 
-def query_db_for_in_by_date(date=timezone.now().strftime('%Y%m%d')):
+def query_db_for_in_by_date(date):
     q = models.Orig.objects.filter(day=date).filter(
         roam='浙江绍兴').values('host').annotate(Count('host'))
     return [
@@ -154,25 +154,25 @@ def index_view(request):
     form = forms.OrigForm()
     context = {'form': form}
 
-    if request.method != 'POST':
-        map_base('本地->省外漫出用户数', query_db_for_out_by_date(), 'china',
-                 5000).render('./templates/map_sx_to_cn.html')
-        map_base('本地->省内漫出用户数', query_db_for_out_by_date(), '浙江',
-                 20000).render('./templates/map_sx_to_zj.html')
-
-        map_base('省外->本地漫入用户数', query_db_for_in_by_date(), 'china',
-                 25000).render('./templates/map_cn_to_sx.html')
-        map_base('省内->本地漫入用户数', query_db_for_in_by_date(), '浙江',
-                 50000).render('./templates/map_zj_to_sx.html')
-
-        table_base(query_db_for_out_by_date(),
-                   '漫出用户数统计表').render('./templates/tbl_sx_to_cn.html')
-        table_base(query_db_for_in_by_date(),
-                   '漫入用户数统计表').render('./templates/tbl_cn_to_sx.html')
-
-        return render(request, 'index.html', context)
+    if request.method == 'POST':
+        d = request.POST.get('day', timezone.now().strftime('%Y%m%d'))
+        print(d)
     else:
-        print('POST:')
-        print(request.POST)
+        d = timezone.now().strftime('%Y%m%d')
 
-        return render(request, 'index.html', context)
+    map_base('本地->省外漫出用户数', query_db_for_out_by_date(d), 'china',
+             5000).render('./templates/map_sx_to_cn.html')
+    map_base('本地->省内漫出用户数', query_db_for_out_by_date(d), '浙江',
+             20000).render('./templates/map_sx_to_zj.html')
+
+    map_base('省外->本地漫入用户数', query_db_for_in_by_date(d), 'china',
+             25000).render('./templates/map_cn_to_sx.html')
+    map_base('省内->本地漫入用户数', query_db_for_in_by_date(d), '浙江',
+             50000).render('./templates/map_zj_to_sx.html')
+
+    table_base(query_db_for_out_by_date(d),
+               '漫出用户数统计表').render('./templates/tbl_sx_to_cn.html')
+    table_base(query_db_for_in_by_date(d),
+               '漫入用户数统计表').render('./templates/tbl_cn_to_sx.html')
+
+    return render(request, 'index.html', context)
