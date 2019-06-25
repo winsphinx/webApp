@@ -151,28 +151,29 @@ def bar_view(request):
 
 def index_view(request):
     read_files(settings.MEDIA_ROOT)
+    today = timezone.now().strftime('%Y%m%d')
+
     form = forms.OrigForm()
     context = {'form': form}
 
     if request.method == 'POST':
-        d = request.POST.get('day', timezone.now().strftime('%Y%m%d'))
-        print(d)
+        day = request.POST.get('day', today)
     else:
-        d = timezone.now().strftime('%Y%m%d')
+        day = today
 
-    map_base('本地->省外漫出用户数', query_db_for_out_by_date(d), 'china',
+    map_base('本地->省外漫出用户数', query_db_for_out_by_date(day), 'china',
              5000).render('./templates/map_sx_to_cn.html')
-    map_base('本地->省内漫出用户数', query_db_for_out_by_date(d), '浙江',
+    map_base('本地->省内漫出用户数', query_db_for_out_by_date(day), '浙江',
              20000).render('./templates/map_sx_to_zj.html')
 
-    map_base('省外->本地漫入用户数', query_db_for_in_by_date(d), 'china',
+    map_base('省外->本地漫入用户数', query_db_for_in_by_date(day), 'china',
              25000).render('./templates/map_cn_to_sx.html')
-    map_base('省内->本地漫入用户数', query_db_for_in_by_date(d), '浙江',
+    map_base('省内->本地漫入用户数', query_db_for_in_by_date(day), '浙江',
              50000).render('./templates/map_zj_to_sx.html')
 
-    table_base(query_db_for_out_by_date(d),
+    table_base(query_db_for_out_by_date(day),
                '漫出用户数统计表').render('./templates/tbl_sx_to_cn.html')
-    table_base(query_db_for_in_by_date(d),
+    table_base(query_db_for_in_by_date(day),
                '漫入用户数统计表').render('./templates/tbl_cn_to_sx.html')
 
     return render(request, 'index.html', context)
