@@ -1,4 +1,5 @@
 import json
+import math
 import os
 import re
 import shutil
@@ -115,6 +116,13 @@ def query_db_for_in_top_users():
     return ([str(x['msisdn'])[2:] for x in q], [x['msisdn__count'] for x in q])
 
 
+def get_max(data):
+    d = sorted(data, key=lambda x: x[1], reverse=True)
+    max1 = math.ceil(d[0][1] / 1000) * 1000
+    max2 = math.ceil(d[1][1] / 1000) * 1000
+    return (max1, max2)
+
+
 def bar_base(name, x_data, y_data) -> Bar:
     return (Bar().add_xaxis(x_data).add_yaxis(
         name, sorted(y_data, reverse=False)).reversal_axis().set_series_opts(
@@ -161,19 +169,22 @@ def index_view(request):
     else:
         day = today
 
-    map_base('本地->省外漫出用户数', query_db_for_out_by_date(day), 'china',
-             5000).render('./templates/map_sx_to_cn.html')
-    map_base('本地->省内漫出用户数', query_db_for_out_by_date(day), '浙江',
-             20000).render('./templates/map_sx_to_zj.html')
+    out_users = query_db_for_out_by_date(day)
+    in_users = query_db_for_in_by_date(day)
+    out_max_zj, out_max_cn = get_max(out_users)
+    in_max_zj, in_max_cn = get_max(in_users)
 
-    map_base('省外->本地漫入用户数', query_db_for_in_by_date(day), 'china',
-             25000).render('./templates/map_cn_to_sx.html')
-    map_base('省内->本地漫入用户数', query_db_for_in_by_date(day), '浙江',
-             50000).render('./templates/map_zj_to_sx.html')
+    map_base('本地->省外漫出用户数', out_users, 'china',
+             out_max_cn).render('./templates/map_sx_to_cn.html')
+    map_base('本地->省内漫出用户数', out_users, '浙江',
+             out_max_zj).render('./templates/map_sx_to_zj.html')
 
-    table_base(query_db_for_out_by_date(day),
-               '漫出用户数统计表').render('./templates/tbl_sx_to_cn.html')
-    table_base(query_db_for_in_by_date(day),
-               '漫入用户数统计表').render('./templates/tbl_cn_to_sx.html')
+    map_base('省外->本地漫入用户数', in_users, 'china',
+             in_max_cn).render('./templates/map_cn_to_sx.html')
+    map_base('省内->本地漫入用户数', in_users, '浙江',
+             in_max_zj).render('./templates/map_zj_to_sx.html')
+
+    table_base(out_users, '漫出用户数统计表').render('./templates/tbl_sx_to_cn.html')
+    table_base(in_users, '漫入用户数统计表').render('./templates/tbl_cn_to_sx.html')
 
     return render(request, 'index.html', context)
