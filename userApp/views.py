@@ -117,10 +117,13 @@ def query_db_for_in_top_users():
 
 
 def get_max(data):
-    d = sorted(data, key=lambda x: x[1], reverse=True)
-    max1 = math.ceil(d[0][1] / 1000) * 1000
-    max2 = math.ceil(d[1][1] / 1000) * 1000
-    return (max1, max2)
+    if data:
+        d = sorted(data, key=lambda x: x[1], reverse=True)
+        max1 = math.ceil(d[0][1] / 1000) * 1000
+        max2 = math.ceil(d[1][1] / 1000) * 1000
+        return (max1, max2)
+    else:
+        return (1000, 1000)
 
 
 def bar_base(name, x_data, y_data) -> Bar:
@@ -143,12 +146,17 @@ def map_base(name, data, maptype, maxdata) -> Map:
                       visualmap_opts=opts.VisualMapOpts(max_=maxdata)))
 
 
-def table_base(data, title) -> Table:
+def table_base(data, title, subtt) -> Table:
     table = Table()
-    headers = ['省市', '用户数']
-    rows = sorted(data, key=lambda x: x[1], reverse=True)
-    table.add(headers,
-              rows).set_global_opts(title_opts=ComponentTitleOpts(title=title))
+    headers = ['省市', '用户数', '百分比']
+    sum = 0
+    for x in data:
+        sum += x[1]
+    new_data = [tuple((x[0], x[1], round(x[1] / sum * 100, 2))) for x in data]
+    new_data.insert(0, ('合计', sum, '-'))
+    rows = sorted(new_data, key=lambda x: x[1], reverse=True)
+    table.add(headers, rows).set_global_opts(
+        title_opts=ComponentTitleOpts(title=title, subtitle=subtt))
     return table
 
 
@@ -184,7 +192,9 @@ def index_view(request):
     map_base('省内->本地漫入用户数', in_users, '浙江',
              in_max_zj).render('./templates/map_zj_to_sx.html')
 
-    table_base(out_users, '漫出用户数统计表').render('./templates/tbl_sx_to_cn.html')
-    table_base(in_users, '漫入用户数统计表').render('./templates/tbl_cn_to_sx.html')
+    table_base(out_users, '漫出用户数统计表',
+               '统计日期：' + day).render('./templates/tbl_sx_to_cn.html')
+    table_base(in_users, '漫入用户数统计表',
+               '统计日期：' + day).render('./templates/tbl_cn_to_sx.html')
 
     return render(request, 'index.html', context)
