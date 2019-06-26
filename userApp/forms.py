@@ -8,6 +8,4 @@ class OrigForm(forms.ModelForm):
         model = Orig
         fields = ['day']
         labels = {'day': '选择日期'}
-        day = forms.DateField(widget=forms.SelectDateWidget)
-        # day = forms.DateField(widget=forms.DateInput(format='%Y%m%d'),
-        #                       input_formats=('%Y%m%d', ))
+        widgets = {'day': forms.SelectDateWidget()}

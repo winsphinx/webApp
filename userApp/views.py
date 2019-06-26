@@ -126,6 +126,17 @@ def get_max(data):
         return (1000, 1000)
 
 
+def get_day_from_post(POST):
+    y = POST['day_year']
+    m = POST['day_month']
+    if len(m) == 1:
+        m = '0' + m
+    d = POST['day_day']
+    if len(d) == 1:
+        d = '0' + d
+    return y + m + d
+
+
 def bar_base(name, x_data, y_data) -> Bar:
     return (Bar().add_xaxis(x_data).add_yaxis(
         name, sorted(y_data, reverse=False)).reversal_axis().set_series_opts(
@@ -148,7 +159,7 @@ def map_base(name, data, maptype, maxdata) -> Map:
 
 def table_base(data, title, subtt) -> Table:
     table = Table()
-    headers = ['省市', '用户数', '百分比']
+    headers = ['省市', '用户数（户）', '百分比（%）']
     sum = 0
     for x in data:
         sum += x[1]
@@ -173,7 +184,7 @@ def index_view(request):
     context = {'form': form}
 
     if request.method == 'POST':
-        day = request.POST.get('day', today)
+        day = get_day_from_post(request.POST)
     else:
         day = today
 
