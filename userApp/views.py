@@ -180,13 +180,12 @@ def index_view(request):
     read_files(settings.MEDIA_ROOT)
     today = timezone.now().strftime('%Y%m%d')
 
-    form = forms.OrigForm()
-    context = {'form': form}
-
-    if request.method == 'POST':
-        day = get_day_from_post(request.POST)
-    else:
+    if request.method != 'POST':
+        form = forms.OrigForm()
         day = today
+    else:
+        form = forms.OrigForm(request.POST)
+        day = get_day_from_post(request.POST)
 
     out_users = query_db_for_out_by_date(day)
     in_users = query_db_for_in_by_date(day)
@@ -208,4 +207,5 @@ def index_view(request):
     table_base(in_users, '漫入用户数统计表',
                '统计日期：' + day).render('./templates/tbl_cn_to_sx.html')
 
+    context = {'form': form}
     return render(request, 'index.html', context)
