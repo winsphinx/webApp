@@ -1,6 +1,8 @@
+import datetime
 import json
 import math
 import os
+import random
 import re
 import shutil
 
@@ -11,7 +13,7 @@ from django.http import HttpResponse
 from django.shortcuts import render
 from django.utils import timezone
 from pyecharts import options as opts
-from pyecharts.charts import Bar, Map
+from pyecharts.charts import Bar, Calendar, Map
 from pyecharts.components import Table
 from pyecharts.globals import CurrentConfig
 from pyecharts.options import ComponentTitleOpts
@@ -58,7 +60,7 @@ def get_filenames(file_dir):
     return filelist
 
 
-def pack_files(filename):
+def pack_file(filename):
     dest = os.path.join(settings.MEDIA_ROOT, 'achieved')
     if not os.path.exists(dest):
         os.makedirs(dest)
@@ -68,12 +70,12 @@ def pack_files(filename):
 def read_files(file_dir):
     file_lists = get_filenames(file_dir)
     for f in file_lists:
-        day = get_file_date(f)
         df = pd.DataFrame(pd.read_csv(f))
         df.columns = ['roam', 'host', 'msisdn', 'imsi']
+        day = get_day_from_filename(f)
         df['day'] = day
-        pack_files(f)
         write_db(df)
+        pack_file(f)
 
 
 def write_db(data):
@@ -83,13 +85,14 @@ def write_db(data):
     data.to_sql(
         name='userapp_orig',
         con=con,
-        # if_exists='append',
-        if_exists='replace',
+        if_exists='append',
+        # if_exists='replace',
         index_label='id')
 
 
-def get_file_date(filename):
-    return re.compile(r'\d{8}').search(filename).group()
+def get_day_from_filename(filename):
+    raw = re.compile(r'\d{8}').search(filename).group()
+    return '-'.join([raw[:4], raw[4:6], raw[6:]])
 
 
 def query_db_for_out_by_date(date):
@@ -134,51 +137,94 @@ def get_day_from_post(POST):
     d = POST['day_day']
     if len(d) == 1:
         d = '0' + d
-    return y + m + d
+    return '-'.join((y, m, d))
 
 
-def bar_base(name, x_data, y_data) -> Bar:
-    return (Bar().add_xaxis(x_data).add_yaxis(
-        name, sorted(y_data, reverse=False)).reversal_axis().set_series_opts(
-            label_opts=opts.LabelOpts(position="right")).set_global_opts(
-                title_opts=opts.TitleOpts(title=''),
+def bar_base(name, x_data, y_data, title, subtitle) -> Bar:
+    return Bar(init_opts=opts.InitOpts(
+        width='1100px', height='800px')).add_xaxis(x_data).add_yaxis(
+            name,
+            sorted(y_data, reverse=False),
+        ).reversal_axis().set_series_opts(
+            label_opts=opts.LabelOpts(position="right"), ).set_global_opts(
+                title_opts=opts.TitleOpts(
+                    title=title,
+                    subtitle=subtitle,
+                ),
                 datazoom_opts=opts.DataZoomOpts(orient='vertical'),
-                toolbox_opts=opts.ToolboxOpts()).dump_options())
+                toolbox_opts=opts.ToolboxOpts(),
+            ).dump_options()
 
 
-def map_base(name, data, maptype, maxdata) -> Map:
-    return (Map().add(
+def map_base(name, data, maptype, maxdata, title, subtitle) -> Map:
+    return Map(init_opts=opts.InitOpts(width='1100px', height='800px')).add(
         series_name=name,
         data_pair=data,
         maptype=maptype,
         zoom=1.0,
         is_roam=False,
-    ).set_global_opts(title_opts=opts.TitleOpts(title=''),
-                      visualmap_opts=opts.VisualMapOpts(max_=maxdata)))
+    ).set_global_opts(
+        title_opts=opts.TitleOpts(
+            title=title,
+            subtitle=subtitle,
+        ),
+        visualmap_opts=opts.VisualMapOpts(max_=maxdata),
+    )
 
 
-def table_base(data, title, subtt) -> Table:
-    table = Table()
-    headers = ['省市', '用户数（户）', '百分比（%）']
+def table_base(data, title, subtitle) -> Table:
+    headers = ['省市', '用户', '占比']
     sum = 0
     for x in data:
         sum += x[1]
     new_data = [tuple((x[0], x[1], round(x[1] / sum * 100, 2))) for x in data]
-    new_data.insert(0, ('合计', sum, '-'))
+    new_data.insert(0, ('合计', sum, '--'))
     rows = sorted(new_data, key=lambda x: x[1], reverse=True)
-    table.add(headers, rows).set_global_opts(
-        title_opts=ComponentTitleOpts(title=title, subtitle=subtt))
-    return table
+    return Table().add(
+        headers,
+        rows,
+    ).set_global_opts(title_opts=ComponentTitleOpts(
+        title=title,
+        subtitle=subtitle,
+    ), )
+
+
+def calendar_base() -> Calendar:
+    begin = datetime.date(2017, 1, 1)
+    end = datetime.date(2017, 12, 31)
+    data = [[str(begin + datetime.timedelta(days=i)), 1]
+            for i in range((end - begin).days + 1)]
+    print(data)
+    c = (Calendar().add(
+        "", data,
+        calendar_opts=opts.CalendarOpts(range_="2017")).set_global_opts(
+            title_opts=opts.TitleOpts(title="Calendar-2017年微信步数情况"),
+            visualmap_opts=opts.VisualMapOpts(
+                max_=20000,
+                min_=500,
+                orient="horizontal",
+                is_piecewise=True,
+                pos_top="230px",
+                pos_left="100px",
+            ),
+        ))
+    return c
 
 
 def bar_view(request):
     x, y = query_db_for_in_top_users()
-    return JsonResponse(json.loads(bar_base('漫入用户 TOP-N', x, y)))
+    return JsonResponse(json.loads(bar_base(
+        'TOP-50',
+        x,
+        y,
+        '漫入用户天数统计',
+        '',
+    )))
 
 
 def index_view(request):
     read_files(settings.MEDIA_ROOT)
-    today = timezone.now().strftime('%Y%m%d')
+    today = timezone.now().strftime('%Y-%m-%d')
 
     if request.method != 'POST':
         form = forms.OrigForm()
@@ -192,20 +238,54 @@ def index_view(request):
     out_max_zj, out_max_cn = get_max(out_users)
     in_max_zj, in_max_cn = get_max(in_users)
 
-    map_base('本地->省外漫出用户数', out_users, 'china',
-             out_max_cn).render('./templates/map_sx_to_cn.html')
-    map_base('本地->省内漫出用户数', out_users, '浙江',
-             out_max_zj).render('./templates/map_sx_to_zj.html')
+    # calendar_base().render('./templates/user_calendar.html')
+    map_base(
+        '本地->省外',
+        out_users,
+        'china',
+        out_max_cn,
+        '漫出用户数',
+        '统计日期：' + day,
+    ).render('./templates/map_sx_to_cn.html')
 
-    map_base('省外->本地漫入用户数', in_users, 'china',
-             in_max_cn).render('./templates/map_cn_to_sx.html')
-    map_base('省内->本地漫入用户数', in_users, '浙江',
-             in_max_zj).render('./templates/map_zj_to_sx.html')
+    map_base(
+        '本地->省内',
+        out_users,
+        '浙江',
+        out_max_zj,
+        '漫出用户数',
+        '统计日期：' + day,
+    ).render('./templates/map_sx_to_zj.html')
 
-    table_base(out_users, '漫出用户数统计表',
-               '统计日期：' + day).render('./templates/tbl_sx_to_cn.html')
-    table_base(in_users, '漫入用户数统计表',
-               '统计日期：' + day).render('./templates/tbl_cn_to_sx.html')
+    map_base(
+        '省外->本地',
+        in_users,
+        'china',
+        in_max_cn,
+        '漫入用户数',
+        '统计日期：' + day,
+    ).render('./templates/map_cn_to_sx.html')
+
+    map_base(
+        '省内->本地',
+        in_users,
+        '浙江',
+        in_max_zj,
+        '漫入用户数',
+        '统计日期：' + day,
+    ).render('./templates/map_zj_to_sx.html')
+
+    table_base(
+        out_users,
+        '漫出用户数统计表',
+        '统计日期：' + day,
+    ).render('./templates/tbl_sx_to_cn.html')
+
+    table_base(
+        in_users,
+        '漫入用户数统计表',
+        '统计日期：' + day,
+    ).render('./templates/tbl_cn_to_sx.html')
 
     context = {'form': form}
     return render(request, 'index.html', context)
