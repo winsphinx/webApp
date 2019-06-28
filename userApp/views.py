@@ -61,7 +61,7 @@ def get_filenames(file_dir):
 
 
 def pack_file(filename):
-    dest = os.path.join(settings.MEDIA_ROOT, 'achieved')
+    dest = os.path.join(settings.UPLOAD_DIR, 'achieved')
     if not os.path.exists(dest):
         os.makedirs(dest)
     shutil.move(filename, dest)
@@ -223,7 +223,7 @@ def bar_view(request):
 
 
 def index_view(request):
-    read_files(settings.MEDIA_ROOT)
+    read_files(settings.UPLOAD_DIR)
     today = timezone.now().strftime('%Y-%m-%d')
 
     if request.method != 'POST':
