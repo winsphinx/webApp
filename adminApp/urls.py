@@ -7,6 +7,7 @@ app_name = 'adminApp'
 urlpatterns = [
     path('login/', LoginView.as_view(template_name='login.html'),
          name='login'),
+    path('logout/', views.logout_view, name='logout'),
     # path('bar/', views.bar_view),
     # path('', views.IndexView.as_view()),
     # path('bar/', views.ChartView.as_view()),
