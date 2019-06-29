@@ -120,6 +120,12 @@ def query_db_for_in_top_users():
     return ([str(x['msisdn'])[2:] for x in q], [x['msisdn__count'] for x in q])
 
 
+def query_db_for_out_top_users():
+    q = models.Orig.objects.filter(host='浙江绍兴').values('msisdn').annotate(
+        Count('msisdn'))[:50]
+    return ([str(x['msisdn'])[2:] for x in q], [x['msisdn__count'] for x in q])
+
+
 def get_max(data):
     if data:
         d = sorted(data, key=lambda x: x[1], reverse=True)
@@ -154,7 +160,7 @@ def bar_base(name, x_data, y_data, title, subtitle) -> Bar:
                 ),
                 datazoom_opts=opts.DataZoomOpts(orient='vertical'),
                 toolbox_opts=opts.ToolboxOpts(),
-            ).dump_options()
+            )
 
 
 def map_base(name, data, maptype, maxdata, title, subtitle) -> Map:
@@ -212,17 +218,6 @@ def calendar_base() -> Calendar:
     return c
 
 
-def bar_view(request):
-    x, y = query_db_for_in_top_users()
-    return JsonResponse(json.loads(bar_base(
-        'TOP-50',
-        x,
-        y,
-        '漫入用户天数统计',
-        '',
-    )))
-
-
 @login_required()
 def index_view(request):
     read_files(settings.UPLOAD_DIR)
@@ -241,6 +236,7 @@ def index_view(request):
     in_max_zj, in_max_cn = get_max(in_users)
 
     # calendar_base().render('./templates/user_calendar.html')
+
     map_base(
         '本地->省外',
         out_users,
@@ -288,6 +284,24 @@ def index_view(request):
         '漫入用户数统计表',
         '统计日期：' + day,
     ).render('./templates/tbl_cn_to_sx.html')
+
+    x, y = query_db_for_in_top_users()
+    bar_base(
+        'Top-50',
+        x,
+        y,
+        '异地漫入本地用户',
+        '统计日期：' + day,
+    ).render('./templates/bar_in.html')
+
+    x, y = query_db_for_out_top_users()
+    bar_base(
+        'Top-50',
+        x,
+        y,
+        '本地漫出异地用户',
+        '统计日期：' + day,
+    ).render('./templates/bar_out.html')
 
     context = {'form': form}
     return render(request, 'userApp/index.html', context)

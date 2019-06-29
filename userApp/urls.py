@@ -5,9 +5,4 @@ from . import views
 app_name = 'userApp'
 urlpatterns = [
     path('', views.index_view, name='index'),
-    path('bar/', views.bar_view),
-    # path('', views.IndexView.as_view()),
-    # path('bar/', views.ChartView.as_view()),
-    # path('index/', views.IndexView.as_view()),
-    # path('map/', views.MapView.as_view()),
 ]
