@@ -224,11 +224,13 @@ def index_view(request):
     today = timezone.now().strftime('%Y-%m-%d')
 
     if request.method != 'POST':
-        form = forms.OrigForm()
         day = today
+        form = forms.OrigForm(initial={'day': day})
     else:
-        form = forms.OrigForm(request.POST)
         day = get_day_from_post(request.POST)
+        form = forms.OrigForm(request.POST)
+        if not form.is_valid():
+            pass
 
     out_users = query_db_for_out_by_date(day)
     in_users = query_db_for_in_by_date(day)

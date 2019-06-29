@@ -19,7 +19,10 @@ MONTHS = {
 }
 
 
-class OrigForm(forms.Form):
-    day = forms.DateField(initial=timezone.now(),
-                          label='选择日期',
-                          widget=forms.SelectDateWidget(months=MONTHS))
+class OrigForm(forms.ModelForm):
+    class Meta:
+        model = Orig
+        fields = ['day']
+        labels = {'day': ''}
+        widgets = {'day': forms.SelectDateWidget(months=MONTHS)}
+        # widgets = {'day': forms.DateInput(attrs={'class': 'datepicker'})}
