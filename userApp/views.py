@@ -8,6 +8,7 @@ import shutil
 
 import pandas as pd
 from django.conf import settings
+from django.contrib.auth.decorators import login_required
 from django.db.models import Count
 from django.http import HttpResponse
 from django.shortcuts import render
@@ -222,6 +223,7 @@ def bar_view(request):
     )))
 
 
+@login_required()
 def index_view(request):
     read_files(settings.UPLOAD_DIR)
     today = timezone.now().strftime('%Y-%m-%d')
