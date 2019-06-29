@@ -1,0 +1,9 @@
+{% extends "userApp/base.html" %}
+{% block content %}
+<form method="POST" action="{% url 'adminApp:register' %}">
+    {% csrf_token %}
+    {{form.as_p}}
+    <button name="submit">register</button>
+    <input type="hidden" name="next" value="{% url 'adminApp:login' %}" />
+</form>
+{% endblock content %}

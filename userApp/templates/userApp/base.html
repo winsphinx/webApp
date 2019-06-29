@@ -1,0 +1,14 @@
+<p>
+    <a href="{% url 'userApp:index' %}"> HOME</a>
+
+    {% if user.is_authenticated %}
+    欢迎 {{user.username}} 登录
+    <a href="{% url 'adminApp:logout' %}">Logout</a>
+    {% else %}
+    <a href="{% url 'adminApp:register' %}">Register</a>
+    <a href="{% url 'adminApp:login' %}">Login</a>
+    {% endif %}
+
+</p>
+{% block content %}
+{% endblock content %}

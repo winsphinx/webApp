@@ -21,4 +21,4 @@ def register_view(request):
             login(request, auth_user)
             return redirect('userApp:index')
     context = {'form': form}
-    return render(request, 'register.html', context)
+    return render(request, 'adminApp/register.html', context)

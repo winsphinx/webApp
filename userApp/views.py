@@ -288,4 +288,4 @@ def index_view(request):
     ).render('./templates/tbl_cn_to_sx.html')
 
     context = {'form': form}
-    return render(request, 'index.html', context)
+    return render(request, 'userApp/index.html', context)
