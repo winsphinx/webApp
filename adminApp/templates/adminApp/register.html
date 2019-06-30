@@ -1,9 +1,18 @@
 {% extends "userApp/base.html" %}
+{% load bootstrap3 %}
+
+{% block header %}
+<h3>请注册</h3>
+{% endblock header %}
+
 {% block content %}
-<form method="POST" action="{% url 'adminApp:register' %}">
-    {% csrf_token %}
-    {{form.as_p}}
-    <button name="submit">register</button>
-    <input type="hidden" name="next" value="{% url 'adminApp:login' %}" />
+<form method="post" action="{% url 'adminApp:register' %}" class="form">
+    <div class="col-md-6">
+        {% csrf_token %}
+        {% bootstrap_form form %}
+        {% buttons submit='注册' reset="取消" %}
+        {% endbuttons %}
+        <input type="hidden" name="next" value="{% url 'adminApp:login' %}" />
+    </div>
 </form>
 {% endblock content %}

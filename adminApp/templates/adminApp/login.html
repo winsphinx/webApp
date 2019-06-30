@@ -1,15 +1,18 @@
 {% extends "userApp/base.html" %}
+{% load bootstrap3 %}
+
+{% block header %}
+<h3>请登录</h3>
+{% endblock header %}
 
 {% block content %}
-
-{% if form.errors %}
-<p>Error!</p>
-{% endif %}
-
-<form method="post" action="{% url 'adminApp:login' %}">
-    {% csrf_token %}
-    {{form.as_p}}
-    <button name="submit">login</button>
-    <input type="hidden" name="next" value="{% url 'userApp:index' %}" />
+<form method="post" action="{% url 'adminApp:login' %}" class="form">
+    <div class="col-md-3">
+        {% csrf_token %}
+        {% bootstrap_form form %}
+        {% buttons submit='登录' reset="取消" %}
+        {% endbuttons %}
+        <input type="hidden" name="next" value="{% url 'userApp:index' %}" />
+    </div>
 </form>
 {% endblock content %}
