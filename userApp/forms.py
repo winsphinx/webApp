@@ -1,3 +1,4 @@
+from bootstrap_datepicker_plus import DatePickerInput
 from django import forms
 from django.utils import timezone
 
@@ -24,5 +25,11 @@ class OrigForm(forms.ModelForm):
         model = Orig
         fields = ['day']
         labels = {'day': ''}
-        widgets = {'day': forms.SelectDateWidget(months=MONTHS)}
-        # widgets = {'day': forms.DateInput(attrs={'class': 'datepicker'})}
+        # widgets = {'day': forms.SelectDateWidget(months=MONTHS)}
+        widgets = {
+            'day':
+            DatePickerInput(options={
+                'format': 'YYYY-MM-DD',
+                'locale': 'zh_cn',
+            })
+        }

@@ -1,14 +1,15 @@
 {% extends "userApp/base.html" %}
+{% load bootstrap4 %}
+{{ form.media }}
 
 {% block content %}
 <div class="container">
-    <form action="" method="POST">
+    <form method="post">
         {% csrf_token %}
-        {{form}}
-        <button name="submit">确定</button>
+        {% bootstrap_form form %}
+        <input type="submit" value="Save">
     </form>
 </div>
-
 
 <div class="echarts">
     <h2>图表</h2>

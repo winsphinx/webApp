@@ -1,18 +1,18 @@
 {% extends "userApp/base.html" %}
-{% load bootstrap3 %}
+{% load bootstrap4 %}
 
 {% block header %}
 <h3>请登录</h3>
 {% endblock header %}
 
 {% block content %}
-<form method="post" action="{% url 'adminApp:login' %}" class="form">
-    <div class="col-md-3">
+<div class="col-md-3">
+    <form method="post" action="{% url 'adminApp:login' %}" class="form">
         {% csrf_token %}
         {% bootstrap_form form %}
         {% buttons submit='登录' reset="取消" %}
         {% endbuttons %}
         <input type="hidden" name="next" value="{% url 'userApp:index' %}" />
-    </div>
-</form>
+    </form>
+</div>
 {% endblock content %}
