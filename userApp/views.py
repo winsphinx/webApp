@@ -218,20 +218,7 @@ def calendar_base() -> Calendar:
     return c
 
 
-@login_required()
-def index_view(request):
-    read_files(settings.UPLOAD_DIR)
-    today = timezone.now().strftime('%Y-%m-%d')
-
-    if request.method != 'POST':
-        day = today
-        form = forms.OrigForm(initial={'day': day})
-    else:
-        day = get_day_from_post(request.POST)
-        form = forms.OrigForm(request.POST)
-        if not form.is_valid():
-            pass
-
+def generate_data(day):
     out_users = query_db_for_out_by_date(day)
     in_users = query_db_for_in_by_date(day)
     out_max_zj, out_max_cn = get_max(out_users)
@@ -305,5 +292,19 @@ def index_view(request):
         '统计日期：' + day,
     ).render('./templates/bar_out.html')
 
+
+@login_required()
+def index_view(request):
+    read_files(settings.UPLOAD_DIR)
+    today = timezone.now().strftime('%Y-%m-%d')
+
+    if request.method != 'POST':
+        day = today
+        form = forms.OrigForm(initial={'day': day})
+    else:
+        day = request.POST.get('day')
+        form = forms.OrigForm(request.POST)
+
+    generate_data(day)
     context = {'form': form}
     return render(request, 'userApp/index.html', context)
