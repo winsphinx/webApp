@@ -35,6 +35,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'bootstrap3',
     'userApp',
     'adminApp',
 ]
@@ -134,3 +135,5 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 UPLOAD_DIR = os.path.join(BASE_DIR, 'upload')
 
 LOGIN_URL = '/user/login/'
+
+BOOTSTRAP3 = {'include_jquery': True}
