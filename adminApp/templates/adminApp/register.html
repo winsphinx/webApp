@@ -6,13 +6,11 @@
 {% endblock header %}
 
 {% block content %}
-<div class="col-md-6">
-    <form method="post" action="{% url 'adminApp:register' %}" class="form">
-        {% csrf_token %}
-        {% bootstrap_form form %}
-        {% buttons submit='注册' reset="取消" %}
-        {% endbuttons %}
-        <input type="hidden" name="next" value="{% url 'adminApp:login' %}" />
-    </form>
-</div>
+<form method="post" action="{% url 'adminApp:register' %}" class="form">
+    {% csrf_token %}
+    {% bootstrap_form form %}
+    {% buttons submit='注册' reset="取消" %}
+    {% endbuttons %}
+    <input type="hidden" name="next" value="{% url 'adminApp:login' %}" />
+</form>
 {% endblock content %}

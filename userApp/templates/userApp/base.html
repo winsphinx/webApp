@@ -1,9 +1,11 @@
 {% load bootstrap4 %}
 {% bootstrap_css %}
 {% bootstrap_javascript jquery='full' %}
-{{ form.media }}
+
 <!DOCTYPE html>
 <html lang="zh-cn">
+
+{{ form.media }}
 
 <head>
     <meta charset="utf-8">
@@ -12,46 +14,45 @@
 
 <body>
     <nav class="navbar navbar-expand-md navbar-dark bg-dark sticky-top">
-            <div class="nav-header">
-                <a class="navbar-brand" href="{% url 'userApp:index' %}">用户可视化分析系统</a>
-                <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                </button>
-            </div>
-
-            <div id="navbarNav" class="navbar-collapse collapse">
-                <ul class="navbar-nav mr-auto">
-                    <li class="nav-item active">
-                        <a class="nav-link" href="#">Home <span class="sr-only">(current)</span></a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">Link</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link disabled" href="#">Disabled</a>
-                    </li>
-                </ul>
-                <ul class="navbar-nav">
-                    {% if user.is_authenticated %}
-                    <li class="nav-item"><a class="nav-link">欢迎 {{user.username}} 登录</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{% url 'adminApp:logout' %}">注销</a></li>
-                    {% else %}
-                    <li class="nav-item"><a class="nav-link" href="{% url 'adminApp:register' %}">注册</a></li>
-                    <li class="nav-item"> <a class="nav-link" href="{% url 'adminApp:login' %}">登录</a></li>
-                    {% endif %}
-                </ul>
-            </div>
+        <div class="nav-header">
+            <a class="navbar-brand" href="{% url 'userApp:main' %}">用户可视化分析系统</a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+        </div>
+        <div id="navbarNav" class="navbar-collapse collapse justify-content-end">
+            <ul class="navbar-nav mr-auto">
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">用户漫游分析</a>
+                    <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+                        <a class="dropdown-item" href="{% url 'userApp:maps' %}">用户空间分布</a>
+                        <a class="dropdown-item" href="{% url 'userApp:days' %}">用户时间分布</a>
+                    </div>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link disabled" href="#">开发中……</a>
+                </li>
+            </ul>
+            <ul class="navbar-nav">
+                {% if user.is_authenticated %}
+                <li class="nav-item"><a class="nav-link">欢迎 {{user.username}} 登录</a></li>
+                <li class="nav-item"><a class="nav-link" href="{% url 'adminApp:logout' %}">注销</a></li>
+                {% else %}
+                <li class="nav-item"><a class="nav-link" href="{% url 'adminApp:register' %}">注册</a></li>
+                <li class="nav-item"> <a class="nav-link" href="{% url 'adminApp:login' %}">登录</a></li>
+                {% endif %}
+            </ul>
+        </div>
     </nav>
+    <main role="main" class="col-md-9 ml-sm-auto col-lg-10 px-4">
+        <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+            <div>
+                {% block content %}
+                {% endblock content %}
+            </div>
+        </div>
 
-    <div class="container">
-        <div class="page-header">
-            {% block header %}
-            {% endblock header %}
-        </div>
-        <div>
-            {% block content %}
-            {% endblock content %}
-        </div>
-    </div>
+    </main>
 </body>
 
 </html>

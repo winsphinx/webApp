@@ -148,23 +148,22 @@ def get_day_from_post(POST):
 
 
 def bar_base(name, x_data, y_data, title, subtitle) -> Bar:
-    return Bar(init_opts=opts.InitOpts(
-        width='1100px', height='800px')).add_xaxis(x_data).add_yaxis(
-            name,
-            sorted(y_data, reverse=False),
-        ).reversal_axis().set_series_opts(
-            label_opts=opts.LabelOpts(position="right"), ).set_global_opts(
-                title_opts=opts.TitleOpts(
-                    title=title,
-                    subtitle=subtitle,
-                ),
-                datazoom_opts=opts.DataZoomOpts(orient='vertical'),
-                toolbox_opts=opts.ToolboxOpts(),
-            )
+    return Bar().add_xaxis(x_data).add_yaxis(
+        name,
+        sorted(y_data, reverse=False),
+    ).reversal_axis().set_series_opts(
+        label_opts=opts.LabelOpts(position="right"), ).set_global_opts(
+            title_opts=opts.TitleOpts(
+                title=title,
+                subtitle=subtitle,
+            ),
+            datazoom_opts=opts.DataZoomOpts(orient='vertical'),
+            toolbox_opts=opts.ToolboxOpts(),
+        )
 
 
 def map_base(name, data, maptype, maxdata, title, subtitle) -> Map:
-    return Map(init_opts=opts.InitOpts(width='1100px', height='800px')).add(
+    return Map().add(
         series_name=name,
         data_pair=data,
         maptype=maptype,
@@ -218,83 +217,12 @@ def calendar_base() -> Calendar:
     return c
 
 
-def generate_data(day):
-    out_users = query_db_for_out_by_date(day)
-    in_users = query_db_for_in_by_date(day)
-    out_max_zj, out_max_cn = get_max(out_users)
-    in_max_zj, in_max_cn = get_max(in_users)
-
-    # calendar_base().render('./templates/user_calendar.html')
-
-    map_base(
-        '本地->省外',
-        out_users,
-        'china',
-        out_max_cn,
-        '漫出用户数',
-        '统计日期：' + day,
-    ).render('./templates/map_sx_to_cn.html')
-
-    map_base(
-        '本地->省内',
-        out_users,
-        '浙江',
-        out_max_zj,
-        '漫出用户数',
-        '统计日期：' + day,
-    ).render('./templates/map_sx_to_zj.html')
-
-    map_base(
-        '省外->本地',
-        in_users,
-        'china',
-        in_max_cn,
-        '漫入用户数',
-        '统计日期：' + day,
-    ).render('./templates/map_cn_to_sx.html')
-
-    map_base(
-        '省内->本地',
-        in_users,
-        '浙江',
-        in_max_zj,
-        '漫入用户数',
-        '统计日期：' + day,
-    ).render('./templates/map_zj_to_sx.html')
-
-    table_base(
-        out_users,
-        '漫出用户数统计表',
-        '统计日期：' + day,
-    ).render('./templates/tbl_sx_to_cn.html')
-
-    table_base(
-        in_users,
-        '漫入用户数统计表',
-        '统计日期：' + day,
-    ).render('./templates/tbl_cn_to_sx.html')
-
-    x, y = query_db_for_in_top_users()
-    bar_base(
-        'Top-50',
-        x,
-        y,
-        '异地漫入本地用户',
-        '统计日期：' + day,
-    ).render('./templates/bar_in.html')
-
-    x, y = query_db_for_out_top_users()
-    bar_base(
-        'Top-50',
-        x,
-        y,
-        '本地漫出异地用户',
-        '统计日期：' + day,
-    ).render('./templates/bar_out.html')
+def main_view(request):
+    return render(request, 'userApp/main.html')
 
 
 @login_required()
-def index_view(request):
+def users_maps_view(request):
     read_files(settings.UPLOAD_DIR)
     today = timezone.now().strftime('%Y-%m-%d')
 
@@ -305,6 +233,43 @@ def index_view(request):
         day = request.POST.get('day')
         form = forms.OrigForm(request.POST)
 
-    generate_data(day)
+    out_users = query_db_for_out_by_date(day)
+    in_users = query_db_for_in_by_date(day)
+    out_max_zj, out_max_cn = get_max(out_users)
+    in_max_zj, in_max_cn = get_max(in_users)
+
+    map_base('本地->省外', out_users, 'china', out_max_cn, '漫出用户数',
+             '统计日期：' + day).render('./templates/map_sx_to_cn.html')
+
+    map_base('本地->省内', out_users, '浙江', out_max_zj, '漫出用户数',
+             '统计日期：' + day).render('./templates/map_sx_to_zj.html')
+
+    map_base('省外->本地', in_users, 'china', in_max_cn, '漫入用户数',
+             '统计日期：' + day).render('./templates/map_cn_to_sx.html')
+
+    map_base('省内->本地', in_users, '浙江', in_max_zj, '漫入用户数',
+             '统计日期：' + day).render('./templates/map_zj_to_sx.html')
+
+    table_base(out_users, '漫出用户数统计表',
+               '统计日期：' + day).render('./templates/tbl_sx_to_cn.html')
+
+    table_base(in_users, '漫入用户数统计表',
+               '统计日期：' + day).render('./templates/tbl_cn_to_sx.html')
+
     context = {'form': form}
-    return render(request, 'userApp/index.html', context)
+    return render(request, 'userApp/maps.html', context)
+
+
+@login_required()
+def users_days_view(request):
+    today = timezone.now().strftime('%Y-%m-%d')
+
+    x, y = query_db_for_in_top_users()
+    bar_base('Top-50', x, y, '异地漫入本地用户',
+             '统计日期：' + today).render('./templates/bar_in.html')
+
+    x, y = query_db_for_out_top_users()
+    bar_base('Top-50', x, y, '本地漫出异地用户',
+             '统计日期：' + today).render('./templates/bar_out.html')
+
+    return render(request, 'userApp/days.html')

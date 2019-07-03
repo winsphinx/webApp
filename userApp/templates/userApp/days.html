@@ -1,0 +1,16 @@
+{% extends "userApp/base.html" %}
+{% load bootstrap4 %}
+{{ form.media }}
+
+{% block content %}
+
+<table border="1">
+    <tr>
+        <td> {% include "bar_in.html" %} </td>
+    </tr>
+    <tr>
+        <td> {% include "bar_out.html" %} </td>
+    </tr>
+</table>
+
+{% endblock content %}

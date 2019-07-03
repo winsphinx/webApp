@@ -19,6 +19,6 @@ def register_view(request):
             auth_user = authenticate(username=new_user.username,
                                      password=request.POST['password1'])
             login(request, auth_user)
-            return redirect('userApp:index')
+            return redirect('userApp:users')
     context = {'form': form}
     return render(request, 'adminApp/register.html', context)
