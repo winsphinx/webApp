@@ -128,9 +128,9 @@ def query_db_for_out_top_users():
 
 def get_max(data):
     if data:
-        d = sorted(data, key=lambda x: x[1], reverse=True)
-        max1 = math.ceil(d[0][1] / 1000) * 1000
-        max2 = math.ceil(d[1][1] / 1000) * 1000
+        data.sort(key=lambda x: x[1], reverse=True)
+        max1 = math.ceil(data[0][1] / 1000) * 1000
+        max2 = math.ceil(data[1][1] / 1000) * 1000
         return (max1, max2)
     else:
         return (1000, 1000)
@@ -148,7 +148,10 @@ def get_day_from_post(POST):
 
 
 def bar_base(name, x_data, y_data, title, subtitle) -> Bar:
-    return Bar().add_xaxis(x_data).add_yaxis(
+    return Bar(init_opts=opts.InitOpts(
+        width='1200px',
+        height='1200px',
+    )).add_xaxis(x_data).add_yaxis(
         name,
         sorted(y_data, reverse=False),
     ).reversal_axis().set_series_opts(
@@ -157,13 +160,16 @@ def bar_base(name, x_data, y_data, title, subtitle) -> Bar:
                 title=title,
                 subtitle=subtitle,
             ),
-            datazoom_opts=opts.DataZoomOpts(orient='vertical'),
+            # datazoom_opts=opts.DataZoomOpts(orient='vertical'),
             toolbox_opts=opts.ToolboxOpts(),
         )
 
 
 def map_base(name, data, maptype, maxdata, title, subtitle) -> Map:
-    return Map().add(
+    return Map(init_opts=opts.InitOpts(
+        width='900px',
+        height='900px',
+    )).add(
         series_name=name,
         data_pair=data,
         maptype=maptype,
@@ -196,24 +202,26 @@ def table_base(data, title, subtitle) -> Table:
 
 
 def calendar_base() -> Calendar:
-    begin = datetime.date(2017, 1, 1)
-    end = datetime.date(2017, 12, 31)
-    data = [[str(begin + datetime.timedelta(days=i)), 1]
-            for i in range((end - begin).days + 1)]
+    begin = datetime.date(2019, 1, 1)
+    end = datetime.date(2019, 12, 31)
+    data = [[str(begin + datetime.timedelta(days=i)),
+             random.randint(0, 1)] for i in range((end - begin).days + 1)]
     print(data)
-    c = (Calendar().add(
-        "", data,
-        calendar_opts=opts.CalendarOpts(range_="2017")).set_global_opts(
-            title_opts=opts.TitleOpts(title="Calendar-2017年微信步数情况"),
-            visualmap_opts=opts.VisualMapOpts(
-                max_=20000,
-                min_=500,
-                orient="horizontal",
-                is_piecewise=True,
-                pos_top="230px",
-                pos_left="100px",
-            ),
-        ))
+    c = (Calendar(init_opts=opts.InitOpts(width='300px', height='1200px')).add(
+        "",
+        data,
+        calendar_opts=opts.CalendarOpts(
+            range_='2019', orient='vertical')).set_global_opts(
+                title_opts=opts.TitleOpts(title="Calendar-2019"),
+                visualmap_opts=opts.VisualMapOpts(
+                    split_number=1,
+                    is_piecewise=True,
+                    max_=1,
+                    min_=0,
+                    orient='horizontal',
+                    range_text=['N', 'Y'],
+                ),
+            ))
     return c
 
 
@@ -271,5 +279,5 @@ def users_days_view(request):
     x, y = query_db_for_out_top_users()
     bar_base('Top-50', x, y, '本地漫出异地用户',
              '统计日期：' + today).render('./templates/bar_out.html')
-
+    # calendar_base().render('./templates/cal.html')
     return render(request, 'userApp/days.html')
