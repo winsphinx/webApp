@@ -4,6 +4,7 @@
 
 {% block content %}
 <form action="{% url 'userApp:maps' %}" method="post" class="form-inline">
+    <h4>请选择查询日期：</h4>
     {% csrf_token %}
     {% bootstrap_form form %}
     {% buttons submit='确定' %}
