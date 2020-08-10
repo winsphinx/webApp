@@ -1,4 +1,5 @@
 # Python:
+.venv
 *.sqlite3
 *.py[cod]
 **/.ropeproject
