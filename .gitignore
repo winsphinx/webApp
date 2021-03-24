@@ -8,4 +8,4 @@
 **/migrations
 /templates/*.html
 *.csv
-*.xls[s]
+*.xls[x]
