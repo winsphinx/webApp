@@ -10,7 +10,7 @@ numpy==1.22.0
 pandas==1.1.0
 prettytable==0.7.2
 pyecharts==1.8.1
-PyMySQL==0.10.0
+PyMySQL==1.1.1
 python-dateutil==2.8.1
 pytz==2020.1
 simplejson==3.17.2
